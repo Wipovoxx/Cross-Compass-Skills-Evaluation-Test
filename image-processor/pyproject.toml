@@ -1,0 +1,13 @@
+[project]
+name = "image-processor"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "pyedifice>=5.0.0",
+    "pyside6-essentials>=6.11.0",
+    "watchdog>=6.0.0",
+]
