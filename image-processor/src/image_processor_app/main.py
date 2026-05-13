@@ -3,19 +3,21 @@ from __future__ import annotations
 import asyncio
 
 import edifice as ed
-from components.imageFolderComponent import ButtonWidget
-from components.imageComponent import OriginalImageComponent, PreviewImageComponent   
+import components 
 
 @ed.component
 def Main(self):
-    with ed.Window(title="Image Processor"):
+    with ed.Window(title="Image Processor", _size_open=(800, 600)):
         with ed.VBoxView(style={"align": "top"}):
             with ed.HBoxView(style={"padding": 10}):
-                ButtonWidget(label="C:\\Path\\To\\Source", buttonLabel="Source Folder")
-                ButtonWidget(label="C:\\Path\\To\\Output", buttonLabel="Output Folder")
+                components.ButtonWidget(label="C:\\Path\\To\\Source", buttonLabel="Source Folder")
+                components.ButtonWidget(label="C:\\Path\\To\\Output", buttonLabel="Output Folder")
             with ed.HBoxView(style={"padding": 10}):
-                OriginalImageComponent()
-                PreviewImageComponent()
+                components.OriginalImageComponent()
+                components.PreviewImageComponent()
+            with ed.HBoxView(style={"align": "center"}):
+                ed.Button("Apply")
+                components.EditorWidget()
 
 
 if __name__ == "__main__":
