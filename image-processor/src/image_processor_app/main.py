@@ -3,22 +3,32 @@ from __future__ import annotations
 import asyncio
 
 import edifice as ed
-import components 
+import components as com
+
+
 
 @ed.component
 def Main(self):
+    source_folder, _source_folder_setter = ed.provide_context("source_folder_context_key", "")
+    output_folder, _output_folder_setter = ed.provide_context("output_folder_context_key", "")
+
     with ed.Window(title="Image Processor", _size_open=(800, 600)):
         with ed.VBoxView(style={"align": "top"}):
             with ed.HBoxView(style={"padding": 10}):
-                components.ButtonWidget(label="C:\\Path\\To\\Source", buttonLabel="Source Folder")
-                components.ButtonWidget(label="C:\\Path\\To\\Output", buttonLabel="Output Folder")
+                com.ButtonWidget(label=source_folder, buttonLabel="Source Folder")
+                com.ButtonWidget(label=output_folder, buttonLabel="Output Folder")
             with ed.HBoxView(style={"padding": 10}):
-                components.OriginalImageComponent()
-                components.PreviewImageComponent()
+                with ed.VBoxView(style={"align": "top"}):
+                    com.ImageComponent(label="Original Image")
+                    with ed.HBoxView(style={"align": "center"}):
+                        ed.Button("Previous")
+                        ed.Button("Next")
+                com.ImageComponent(label="Preview Image")
             with ed.HBoxView(style={"align": "center"}):
-                ed.Button("Apply")
-                components.EditorWidget()
+                ed.Button("Apply", style={"margin-left": "100px", "margin-right": "200px"})
+                com.EditorWidget()
 
+   
 
 if __name__ == "__main__":
     ed.App(Main()).start()
