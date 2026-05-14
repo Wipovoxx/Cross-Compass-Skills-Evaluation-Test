@@ -17,9 +17,11 @@ def OriginalImageComponent(self):
 @ed.component
 def ImageComponent(self, label:str):
 
+    selected_image, _selected_image_setter = ed.use_context("selected_image_context_key", str)
+
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
-        ed.Image(src="C:\\Users\\aleja\\Pictures\\McQueen.png",)
+        ed.Image(src=selected_image, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
 
 @ed.component
 def EditorWidget(self):
