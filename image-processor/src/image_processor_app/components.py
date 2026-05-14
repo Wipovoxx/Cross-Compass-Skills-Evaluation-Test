@@ -37,22 +37,39 @@ def SliderWidget(self, left_label:str, min:int, max:int, right_label:str = ""):
 
     current_value, current_value_setter = ed.use_state(0)
 
+    current_hue, current_hue_setter = ed.use_context("hue_context_key", int)
+    current_saturation, current_saturation_setter = ed.use_context("saturation_context_key", int)
+    current_value, current_value_setter = ed.use_context("value_context_key", int)
+    current_sharpness, current_sharpness_setter = ed.use_context("sharpness_context_key", int)
+
     def on_TextInput_change(text):
         try:
             if text.isdigit() or (text.startswith("-") and text[1:].isdigit()):
                 value = int(text)
                 if min <= value <= max:
                     current_value_setter(value)
+                    set_value(value)
                 else:
                     current_value_setter(0)
+                    set_value(0)
             else:
+                current_value_setter(0)
+                set_value(0)
                 return
         except ValueError:
             pass # Could not convert string to int
+    
+    def set_value(new_value):
+        current_value_setter(new_value)
+        match left_label.casefold():
+            case "hue": current_hue_setter(new_value)
+            case "saturation": current_saturation_setter(new_value)   
+            case "value": current_value_setter(new_value)
+            case "sharpness": current_sharpness_setter(new_value)
 
     with ed.HBoxView(style={"align": "right", "padding": 10}):
         ed.Label(left_label, style={"min-width": "60px"})
-        ed.Slider(value=current_value, min_value=min, max_value=max, on_change=current_value_setter)
+        ed.Slider(value=current_value, min_value=min, max_value=max, on_change=set_value)
         if right_label:
             ed.Label(right_label, style={"margin-left": "5px", "margin-right": "10px"})
         ed.TextInput(text=str(current_value), on_change=on_TextInput_change,
