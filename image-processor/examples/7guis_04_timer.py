@@ -16,7 +16,8 @@ def Main(self):
     duration, duration_set = ed.use_state(20)
 
     async def timer_tick():
-        while True:
+        print("Entering timer_tick")
+        while elapsed_time < duration:
             elapsed_time_set(lambda old: min(old + 0.1, float(duration)))
             await asyncio.sleep(0.1)
 

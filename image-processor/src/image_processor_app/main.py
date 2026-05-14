@@ -25,7 +25,7 @@ def Main(self):
     image_names, image_names_setter = ed.use_state([])
     
     
-    def loadImages():
+    async def loadImages():
 
         extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff', '*.tif', "*.webp"]
         aux_images = []
@@ -49,6 +49,8 @@ def Main(self):
         else:
             print("Source folder is not set or does not exist.")
 
+    ed.use_async(loadImages, source_folder)
+
     def selectImage(direction):
     
         currentImageIndex = image_names.index(selected_image) if selected_image in image_names else -1
@@ -65,8 +67,7 @@ def Main(self):
                 com.ButtonWidget(label=source_folder, buttonLabel="Source Folder")
                 com.ButtonWidget(label=output_folder, buttonLabel="Output Folder")
             with ed.HBoxView(style={"padding": 10}):
-                with ed.VBoxView(style={"align": "top"}):
-                    ed.Button("Load Images", on_click=lambda _:loadImages())   
+                with ed.VBoxView(style={"align": "top"}):   
                     com.ImageComponent(label="Original Image")
                     with ed.HBoxView(style={"align": "center"}):
                         ed.Button("Previous",on_click=lambda _: selectImage(-1))
