@@ -23,6 +23,9 @@ def Main(self):
     selected_image, selected_image_setter = ed.provide_context("selected_image_context_key", "")
     images, images_setter = ed.use_state([])
     image_names, image_names_setter = ed.use_state([])
+
+    progressBarValue, progressBarValue_setter = ed.use_state(0)
+    progressBarFactor, progressBarFactor_setter = ed.use_state(1)
     
     
     async def loadImages():
@@ -30,8 +33,12 @@ def Main(self):
         extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff', '*.tif', "*.webp"]
         aux_images = []
         aux_image_names = []
+        progressBarValue_setter(0)
 
         if source_folder is not None and os.path.isdir(source_folder):
+            progressBarFactor_setter(lambda _: len(os.listdir(source_folder)))
+            print("Loading images from:", source_folder)
+            print("Total files in source folder:", progressBarFactor)
             for extension in extensions:
                 image_paths = glob.glob(os.path.join(source_folder, extension))
                 for image_path in image_paths:
@@ -40,11 +47,14 @@ def Main(self):
                         if img is not None:
                             aux_images.append(img)
                             aux_image_names.append(image_path)
+                            progressBarValue_setter(lambda old: old + 1)
+                            await asyncio.sleep(0)
+                            
                     except Exception as e:
                         print(f"Error loading image {image_path}: {e}")
             images_setter(aux_images)
             image_names_setter(aux_image_names)
-            print(len(image_names), "images loaded.")
+            print(len(aux_image_names), "images loaded.")
             selected_image_setter(aux_image_names[0])
         else:
             print("Source folder is not set or does not exist.")
@@ -56,9 +66,19 @@ def Main(self):
         currentImageIndex = image_names.index(selected_image) if selected_image in image_names else -1
         print("Current index:", currentImageIndex, "Direction:", direction)
         currentImageIndex += direction
+
+        if len(image_names) < 1:
+            print("No images available to select.")
+            return
+
         if 0 <= currentImageIndex < len(image_names):
             print("Selected image:", image_names[currentImageIndex])
             selected_image_setter(image_names[currentImageIndex])
+        elif image_names.index(selected_image) == 0 and direction == -1:
+            selected_image_setter(image_names[len(image_names)-1]) #if we are at the first image and click previous, we select the last image
+        elif image_names.index(selected_image) == len(image_names)-1 and direction == 1:
+            selected_image_setter(image_names[0]) #if we are at the last image and click next, we select the first image
+
 
 
     with ed.Window(title="Image Processor", _size_open=(800, 600)):
@@ -78,7 +98,7 @@ def Main(self):
                 com.EditorWidget()
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 ed.ProgressBar(
-                        value=50,
+                        value=int((progressBarValue / progressBarFactor) *100),
                         min_value=0,
                         max_value=100,
                         format="",

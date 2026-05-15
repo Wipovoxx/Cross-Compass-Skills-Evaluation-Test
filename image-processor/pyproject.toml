@@ -9,5 +9,7 @@ dependencies = [
     "pillow>=12.2.0",
     "pyedifice>=5.0.0",
     "pyside6-essentials>=6.11.0",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
     "watchdog>=6.0.0",
 ]
