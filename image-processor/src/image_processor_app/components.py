@@ -1,6 +1,8 @@
 import edifice as ed
 import tkinter as tk
 from tkinter import filedialog
+from PIL import Image, ImageFile
+from PySide6.QtGui import QImage
 
 @ed.component
 def OriginalImageComponent(self):
@@ -17,11 +19,15 @@ def OriginalImageComponent(self):
 @ed.component
 def ImageComponent(self, label:str):
 
-    selected_image, _selected_image_setter = ed.use_context("selected_image_context_key", str)
+    selected_image_name, _selected_image_setter = ed.use_context("selected_image_context_key", str)
+    preview_image, preview_image_setter = ed.use_context("preview_image_context_key", QImage)
 
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
-        ed.Image(src=selected_image, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
+        if label.casefold().startswith("original"):
+            ed.Image(src=selected_image_name, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
+        elif label.casefold().startswith("preview"):
+            ed.Image(src=preview_image, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
 
 @ed.component
 def EditorWidget(self):
