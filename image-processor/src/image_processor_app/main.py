@@ -6,6 +6,7 @@ import cv2
 import glob
 import os
 from PIL import Image
+import numpy as np
 import edifice as ed
 import components as com
 import logging
@@ -108,7 +109,6 @@ def Main(self):
 
         logger.info(f"Selected image: {selected_image_name}")
         
-    
     def updatePreviewImage(index):
         try:
             preview_img = Image.open(image_names[index])
@@ -121,8 +121,48 @@ def Main(self):
         except Exception as e:
             logger.error(f"Error loading preview image: {e}", exc_info=True)
 
+    def editImage():
 
-    with ed.Window(title="Image Processor", _size_open=(800, 600)):
+        if selected_preview_name == "":
+            logger.warning("No preview image selected.")
+            return
+
+        img = Image.open(selected_preview_name)
+        hsv_img = img.convert('HSV')
+    
+        # Convert to numpy array
+        hsv_array = np.array(hsv_img)
+    
+        # Modify H, S, V
+        h, s, v = hsv_array[:,:,0], hsv_array[:,:,1], hsv_array[:,:,2]
+    
+        # Modify Hue
+        logger.info("Hue shift:" + str(int(current_hue * 255 / 360) % 256))
+        h = (h.astype(np.int16) + int(current_hue * 255 / 360)) % 256
+        h = h.astype(np.uint8)
+
+        # Modify Saturation
+        saturation_factor = float(current_saturation / 100.0)
+        s = np.clip(s * saturation_factor, 0, 255).astype(np.uint8)
+    
+        # Modify Value
+        value_factor = float(current_value / 100.0)
+        v = np.clip(v * value_factor, 0, 255).astype(np.uint8)
+    
+        # Reconstruct the image
+        modified_hsv = np.stack([h, s, v], axis=2)
+        modified_hsv_img = Image.fromarray(modified_hsv, 'HSV')
+    
+        # Convert back to RGB
+        result = modified_hsv_img.convert('RGB')
+        result_path = os.path.join(output_folder, "edited_preview.png")
+        result.save(result_path)
+        preview_image_setter(QImage(result_path))
+        
+        logger.info(f"Edited image saved: {result_path}")
+
+
+    with ed.Window(title="Image Processor", _size_open='Maximized'):
         with ed.VBoxView(style={"align": "top"}):
             with ed.HBoxView(style={"padding": 10}):
                 com.ButtonWidget(label=source_folder, buttonLabel="Source Folder")
@@ -135,7 +175,7 @@ def Main(self):
                         ed.Button("Next", on_click= lambda _: selectImage(1))
                 com.ImageComponent(label="Preview Image")
             with ed.HBoxView(style={"align": "center"}):
-                ed.Button("Apply", on_click= lambda _: print("Clicked!"),style={"margin-left": "100px", "margin-right": "200px"})
+                ed.Button("Apply", on_click= lambda _: editImage(),style={"margin-left": "100px", "margin-right": "200px"})
                 com.EditorWidget()
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 ed.ProgressBar(

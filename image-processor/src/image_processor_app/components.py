@@ -3,6 +3,10 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageFile
 from PySide6.QtGui import QImage
+from PySide6.QtCore import Qt
+
+
+
 
 @ed.component
 def OriginalImageComponent(self):
@@ -25,17 +29,18 @@ def ImageComponent(self, label:str):
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
         if label.casefold().startswith("original"):
-            ed.Image(src=selected_image_name, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
+            ed.Image(src=selected_image_name,aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding ,style={"max-width": "700px", "max-height": "600px"})
         elif label.casefold().startswith("preview"):
-            ed.Image(src=preview_image, style={"margin-left": "100px","max-width": "400px", "max-height": "400px"})
+            ed.Image(src=preview_image, aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, style={"max-width": "700px", "max-height": "600px"})
 
 @ed.component
 def EditorWidget(self):
-    with ed.VBoxView(style={"align": "top", "padding": 20, "border": "1px solid #ccc", "border-radius": "50px"}):
-        SliderWidget(left_label="Hue", min=-100, max=100)
-        SliderWidget(left_label="Saturation", min=-100, max=100)
-        SliderWidget(left_label="Value", min=-100, max=100)
+    with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "border-radius": "50px", "max-width": "800px"}):
+        SliderWidget(left_label="Hue", min=0, max=360)
+        SliderWidget(left_label="Saturation", min=0, max=200)
+        SliderWidget(left_label="Value", min=0, max=200)
         SliderWidget(left_label="Sharpness", min=-100, max=100, right_label="Blur")
+        ed.Label(style={"min-width:": "20px"})
 
 @ed.component
 def SliderWidget(self, left_label:str, min:int, max:int, right_label:str = ""):
