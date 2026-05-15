@@ -18,6 +18,7 @@ logger.setLevel(logging.INFO)
 def Main(self):
     source_folder, _source_folder_setter = ed.provide_context("source_folder_context_key", "")
     output_folder, _output_folder_setter = ed.provide_context("output_folder_context_key", "")
+    reload_preview, reload_preview_setter = ed.use_state(False)
 
     current_hue, current_hue_setter = ed.provide_context("hue_context_key", 0)
     current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", 0)
@@ -62,6 +63,7 @@ def Main(self):
             image_names_setter(aux_image_names)
             logger.info(f"{len(aux_image_names)} images loaded.")
             selected_image_setter(aux_image_names[firstImage])
+            reload_preview_setter(not reload_preview)
         else:
             logger.warning("Source folder is not set or does not exist.")
 
@@ -76,10 +78,12 @@ def Main(self):
         if output_folder == "" or not os.path.isdir(output_folder):
             logger.warning("Output folder is not set or does not exist.")
             return
+        
         updatePreviewImage(firstImage)
+        
     
 
-    ed.use_async(loadPreviewImage,[source_folder, output_folder])
+    ed.use_async(loadPreviewImage,[source_folder, output_folder, reload_preview])
 
     
     def selectImage(direction):
