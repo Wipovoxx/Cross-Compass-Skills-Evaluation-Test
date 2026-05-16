@@ -122,13 +122,31 @@ def Main(self):
         except Exception as e:
             logger.error(f"Error loading preview image: {e}", exc_info=True)
 
-    def editImage():
 
+    async def editPreview():
         if selected_preview_name == "":
             logger.warning("No preview image selected.")
             return
+        await asyncio.sleep(0.1)
+        try:
+            edittedPreview = editImage(selected_preview_name)
+        except Exception as e:
+            logger.error(f"Error editing preview image: {e}", exc_info=True)
+            return
 
-        img = Image.open(selected_preview_name)
+        result_path = os.path.join(output_folder, "edited_preview.png")
+        edittedPreview.save(result_path)
+        preview_image_setter(QImage(result_path))
+        logger.info(f"Preview image edited and saved: {result_path}")
+
+    ed.use_async(editPreview, [selected_preview_name, current_hue, current_saturation, current_value, current_sharpness])
+
+    def editImage(image: str):
+
+        if image == "":
+            raise Exception("No image selected for editing.")
+
+        img = Image.open(image)
         hsv_img = img.convert('HSV')
     
         # Convert to numpy array
@@ -163,11 +181,7 @@ def Main(self):
         elif current_sharpness < 100:
             result = result.filter(ImageFilter.UnsharpMask(percent=150 -current_sharpness))
 
-        result_path = os.path.join(output_folder, "edited_preview.png")
-        result.save(result_path)
-        preview_image_setter(QImage(result_path))
-        
-        logger.info(f"Edited image saved: {result_path}")
+        return result
 
 
     with ed.Window(title="Image Processor", _size_open='Maximized'):
@@ -183,7 +197,7 @@ def Main(self):
                         ed.Button("Next", on_click= lambda _: selectImage(1))
                 com.ImageComponent(label="Preview Image")
             with ed.HBoxView(style={"align": "center"}):
-                ed.Button("Apply", on_click= lambda _: editImage(),style={"margin-left": "100px", "margin-right": "200px"})
+                ed.Button("Apply", on_click= lambda _: logger.info("Clicked!"),style={"margin-left": "100px", "margin-right": "200px"})
                 com.EditorWidget()
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 ed.ProgressBar(
