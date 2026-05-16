@@ -6,6 +6,7 @@ import cv2
 import glob
 import os
 from PIL import Image
+from PIL import ImageFilter
 import numpy as np
 import edifice as ed
 import components as com
@@ -22,8 +23,8 @@ def Main(self):
     reload_preview, reload_preview_setter = ed.use_state(False)
 
     current_hue, current_hue_setter = ed.provide_context("hue_context_key", 0)
-    current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", 0)
-    current_value, current_value_setter = ed.provide_context("value_context_key", 0)
+    current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", 100)
+    current_value, current_value_setter = ed.provide_context("value_context_key", 100)
     current_sharpness, current_sharpness_setter = ed.provide_context("sharpness_context_key", 0)
 
     selected_image_name, selected_image_setter = ed.provide_context("selected_image_context_key", "")
@@ -155,6 +156,13 @@ def Main(self):
     
         # Convert back to RGB
         result = modified_hsv_img.convert('RGB')
+
+        # Modify Sharpness/Blur
+        if current_sharpness > 100:
+            result = result.filter(ImageFilter.GaussianBlur(radius=(current_sharpness - 100) / 20))
+        elif current_sharpness < 100:
+            result = result.filter(ImageFilter.UnsharpMask(percent=150 -current_sharpness))
+
         result_path = os.path.join(output_folder, "edited_preview.png")
         result.save(result_path)
         preview_image_setter(QImage(result_path))

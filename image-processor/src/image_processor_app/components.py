@@ -36,19 +36,19 @@ def ImageComponent(self, label:str):
 @ed.component
 def EditorWidget(self):
     with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "border-radius": "50px", "max-width": "800px"}):
-        SliderWidget(left_label="Hue", min=0, max=360)
-        SliderWidget(left_label="Saturation", min=0, max=200)
-        SliderWidget(left_label="Value", min=0, max=200)
-        SliderWidget(left_label="Sharpness", min=-100, max=100, right_label="Blur")
+        SliderWidget(left_label="Hue", initial_value=0, min=0, max=360)
+        SliderWidget(left_label="Saturation",initial_value=100, min=0, max=200)
+        SliderWidget(left_label="Value", initial_value=100, min=0, max=200)
+        SliderWidget(left_label="Sharpness", initial_value=100, min=0, max=200, right_label="Blur")
         ed.Label(style={"min-width:": "20px"})
 
 @ed.component
-def SliderWidget(self, left_label:str, min:int, max:int, right_label:str = ""):
+def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, right_label:str = ""):
 
     text_input_style = {"width": "50px","margin-left": "40px", "margin-right": "10px"}
     text_input_right_label_style = { "width": "50px", "margin-right": "10px"}
 
-    slider_value, slider_value_setter = ed.use_state(0)
+    slider_value, slider_value_setter = ed.use_state(initial_value)
 
     current_hue, current_hue_setter = ed.use_context("hue_context_key", int)
     current_saturation, current_saturation_setter = ed.use_context("saturation_context_key", int)
