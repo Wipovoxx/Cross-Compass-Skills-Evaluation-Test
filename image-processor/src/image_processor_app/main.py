@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from typing import Callable
 import cv2
 import glob
 import os
@@ -15,6 +16,16 @@ from PySide6.QtGui import QImage
 
 logger = logging.getLogger("Edifice")
 logger.setLevel(logging.INFO)
+
+
+def subProcess(
+    callback: Callable[[int, int], None],
+) -> None:
+    callback(0, 4)
+    callback(1, 4)
+    callback(2, 4)
+    callback(3, 4)
+
 
 @ed.component
 def Main(self):
@@ -35,6 +46,9 @@ def Main(self):
     firstImage = 0
     progressBarValue, progressBarValue_setter = ed.use_state(0)
     progressBarFactor, progressBarFactor_setter = ed.use_state(1)
+
+    start, start_setter = ed.use_state(False)
+    execute, execute_setter = ed.use_state(False)
     
     
     async def loadImages():
@@ -141,6 +155,49 @@ def Main(self):
 
     ed.use_async(editPreview, [selected_preview_name, current_hue, current_saturation, current_value, current_sharpness])
 
+
+    def editAllImages(process_id: int, total_processes: int):
+        if execute:
+            if source_folder == "" or image_names == []:
+                logger.warning("Source folder is not set or does not exist.")
+                return
+            if output_folder == "":
+                logger.warning("Output folder is not set or does not exist.")
+                return
+        
+            task_size = int(len(image_names) / total_processes)
+            start_index = int(process_id * task_size)
+            end_index = 0
+            if process_id == 0:
+                end_index = task_size - 1
+            elif process_id == total_processes - 1:
+                end_index = len(image_names) - 1
+            else:
+                end_index = int((process_id + 1) * task_size) - 1
+
+            logger.info(f"Process {process_id} processing images from index {start_index} to {end_index}")
+
+            for i in range(start_index, end_index + 1):
+                try:
+                    img = editImage(image_names[i])
+                    output_path = os.path.join(output_folder, os.path.basename(image_names[i]))
+                    img.save(output_path)
+                    logger.info(f"Image saved: {output_path}")
+                except Exception as e:
+                    logger.error(f"Error processing image {image_names[i]}: {e}", exc_info=True)
+                progressBarValue_setter(lambda old: old + 1) 
+            execute_setter(False)
+        else:   
+            return
+
+    def on_start_click():
+        progressBarValue_setter(0)
+        start_setter(not start)
+        if not execute:
+            execute_setter(not execute)
+
+    ed.use_async(lambda: ed.run_subprocess_with_callback(subProcess, editAllImages), start)   
+
     def editImage(image: str):
 
         if image == "":
@@ -197,7 +254,7 @@ def Main(self):
                         ed.Button("Next", on_click= lambda _: selectImage(1))
                 com.ImageComponent(label="Preview Image")
             with ed.HBoxView(style={"align": "center"}):
-                ed.Button("Apply", on_click= lambda _: logger.info("Clicked!"),style={"margin-left": "100px", "margin-right": "200px"})
+                ed.Button("Apply", on_click= lambda _: on_start_click(), style={"margin-left": "100px", "margin-right": "200px"})
                 com.EditorWidget()
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 ed.ProgressBar(
