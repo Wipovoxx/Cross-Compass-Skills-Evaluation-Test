@@ -1,3 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pyright]
+extraPaths = ["src"]
+
 [project]
 name = "image-processor"
 version = "0.1.0"
@@ -13,3 +23,6 @@ dependencies = [
     "pytest-cov>=7.1.0",
     "watchdog>=6.0.0",
 ]
+
+[project.scripts]
+image-processor = "image_processor_app.main:start"

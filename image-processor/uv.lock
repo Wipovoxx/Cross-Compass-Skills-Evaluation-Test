@@ -53,7 +53,7 @@ wheels = [
 [[package]]
 name = "image-processor"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "opencv-python" },
     { name = "pillow" },

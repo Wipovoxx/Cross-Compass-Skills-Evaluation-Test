@@ -8,7 +8,7 @@ from PIL import Image
 from PIL import ImageFilter
 import numpy as np
 import edifice as ed
-import components as com
+from . import components as com
 import logging
 from PySide6.QtGui import QImage
 from dataclasses import dataclass
@@ -317,5 +317,8 @@ def Main(self):
 
    
 
-if __name__ == "__main__":
+def start():
     ed.App(Main()).start()
+
+if __name__ == "__main__":
+    start()
