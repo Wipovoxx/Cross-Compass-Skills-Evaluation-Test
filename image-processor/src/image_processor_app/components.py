@@ -9,18 +9,6 @@ from PySide6.QtCore import Qt
 
 
 @ed.component
-def OriginalImageComponent(self):
-
-
-    with ed.VBoxView(style={"align": "top"}):
-        ed.Label("Original Image", style={"margin-left": "100px"})
-        ed.Image(src="C:\\Users\\aleja\\Pictures\\McQueen.png",
-                 style={"margin-left": "100px"} )
-        with ed.HBoxView(style={"padding": 10}):
-            ed.Button("Previous")
-            ed.Button("Next")
-
-@ed.component
 def ImageComponent(self, label:str):
 
     selected_image_name, _selected_image_setter = ed.use_context("selected_image_context_key", str)
@@ -29,18 +17,18 @@ def ImageComponent(self, label:str):
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
         if label.casefold().startswith("original"):
-            ed.Image(src=selected_image_name,aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding ,style={"max-width": "700px", "max-height": "600px"})
+            ed.Image(src=selected_image_name,aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding  ,style={"max-width": "900px", "max-height": "650px"})
         elif label.casefold().startswith("preview"):
-            ed.Image(src=preview_image, aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, style={"max-width": "700px", "max-height": "600px"})
+            ed.Image(src=preview_image, aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatioByExpanding , style={"max-width": "900px", "max-height": "650px"})
 
 @ed.component
 def EditorWidget(self):
-    with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "border-radius": "50px", "max-width": "800px"}):
+    with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "padding" : "5px" ,"border-radius": "50px", "max-width": "800px"}):
         SliderWidget(left_label="Hue", initial_value=0, min=0, max=360)
         SliderWidget(left_label="Saturation",initial_value=100, min=0, max=200)
         SliderWidget(left_label="Value", initial_value=100, min=0, max=200)
         SliderWidget(left_label="Sharpness", initial_value=100, min=0, max=200, right_label="Blur")
-        ed.Label(style={"min-width:": "20px"})
+        
 
 @ed.component
 def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, right_label:str = ""):
@@ -60,14 +48,11 @@ def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, righ
             if text.isdigit() or (text.startswith("-") and text[1:].isdigit()):
                 value = int(text)
                 if min <= value <= max:
-                    slider_value_setter(value)
                     set_value(value)
                 else:
-                    slider_value_setter(0)
-                    set_value(0)
+                    set_value(initial_value)
             else:
-                slider_value_setter(0)
-                set_value(0)
+                set_value(initial_value)
                 return
         except ValueError:
             pass # Could not convert string to int
