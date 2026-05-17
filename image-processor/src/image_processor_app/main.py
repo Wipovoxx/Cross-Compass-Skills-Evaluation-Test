@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable
+from typing import Callable, Generator
 import glob
 import os
 from PIL import Image
@@ -30,6 +30,18 @@ class WorkItem:
     value: int
     sharpness: int
 
+
+
+def scanImages(folder: str) -> Generator[str, None, None]:
+    extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff', '*.tif', '*.webp']
+    if folder and os.path.isdir(folder):
+        for extension in extensions:
+            for path in glob.glob(os.path.join(folder, extension)):
+                try:
+                    Image.open(path)
+                    yield path
+                except Exception as e:
+                    logger.error(f"scanImages(): Could not open {path}: {e}")
 
 
 def subProcess( msg_queue: Queue[WorkItem],
@@ -122,27 +134,17 @@ def Main(self):
     
     async def loadImages():
 
-        extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff', '*.tif', "*.webp"]
         aux_image_names = []
         progressBarValue_setter(0)
         
         if source_folder is not None and os.path.isdir(source_folder):
             showProgressBar_setter(True)
             progressBarFactor_setter(lambda _: len(os.listdir(source_folder)))
-            print("Loading images from:", source_folder)
-            print("Total files in source folder:", progressBarFactor)
-            for extension in extensions:
-                image_paths = glob.glob(os.path.join(source_folder, extension))
-                for image_path in image_paths:
-                    try:
-                        img = Image.open(image_path)
-                        if img is not None:
-                            aux_image_names.append(image_path)
-                            progressBarValue_setter(lambda old: old + 1)
-                            await asyncio.sleep(0)
-                            logger.info(f"Image loaded: {image_path}")
-                    except Exception as e:
-                        logger.error(f"Error loading image {image_path}: {e}")
+            for image_path in scanImages(source_folder):
+                aux_image_names.append(image_path)
+                progressBarValue_setter(lambda old: old + 1)
+                await asyncio.sleep(0)
+                logger.info(f"loadImages(): Image loaded: {image_path}")
             
             image_names_setter(aux_image_names)
             logger.info(f"{len(aux_image_names)} images loaded.")
