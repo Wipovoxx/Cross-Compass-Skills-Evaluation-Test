@@ -94,7 +94,6 @@ image-processor/
 │       ├── components.py     # Reusable UI components
 │       └── constants.py      # Shared constants (extensions, warning messages)
 ├── tests/
-│   ├── conftest.py           # Shared test configuration
 │   ├── test_edit_image.py    # Unit tests for image editing logic
 │   └── test_scan_images.py   # Unit tests for image scanning logic
 ├── pyproject.toml
