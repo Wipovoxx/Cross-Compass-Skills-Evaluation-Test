@@ -278,9 +278,9 @@ def Main(self):
                 *workers,
                 send_data(queues, worker_images),
             )
-            worker_results = results[:-1]
+            
             logger.info("runSubprocess(): All workers finished.")
-            logger.info(f"runSubprocess(): processed: {len(image_names)}")
+            logger.info(f"runSubprocess(): processed: {len(image_names)} images")
             showProgressBar_setter(False)
             execute_setter(not execute)
         
