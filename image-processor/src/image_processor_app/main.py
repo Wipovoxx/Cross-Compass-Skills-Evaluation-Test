@@ -9,6 +9,7 @@ from PIL import ImageFilter
 import numpy as np
 import edifice as ed
 from . import components as com
+from .constants import IMAGE_EXTENSIONS
 import logging
 from PySide6.QtGui import QImage
 from dataclasses import dataclass
@@ -20,6 +21,7 @@ import math
 
 logger = logging.getLogger("Edifice")
 logger.setLevel(logging.INFO)
+
 
 @dataclass
 class WorkItem:
@@ -33,9 +35,9 @@ class WorkItem:
 
 
 def scanImages(folder: str) -> Generator[str, None, None]:
-    extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff', '*.tif', '*.webp']
+    
     if folder and os.path.isdir(folder):
-        for extension in extensions:
+        for extension in IMAGE_EXTENSIONS:
             for path in glob.glob(os.path.join(folder, extension)):
                 try:
                     Image.open(path)
@@ -139,7 +141,8 @@ def Main(self):
         
         if source_folder is not None and os.path.isdir(source_folder):
             showProgressBar_setter(True)
-            progressBarFactor_setter(lambda _: len(os.listdir(source_folder)))
+            image_count = sum(len(glob.glob(os.path.join(source_folder, ext))) for ext in IMAGE_EXTENSIONS)
+            progressBarFactor_setter(lambda _: image_count)
             for image_path in scanImages(source_folder):
                 aux_image_names.append(image_path)
                 progressBarValue_setter(lambda old: old + 1)

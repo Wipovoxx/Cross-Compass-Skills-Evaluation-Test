@@ -1,8 +1,16 @@
+import glob
+import os
 import edifice as ed
 from PySide6.QtWidgets import QFileDialog
 from PIL import Image, ImageFile
 from PySide6.QtGui import QImage, QIntValidator
 from PySide6.QtCore import Qt
+import logging
+from .constants import IMAGE_EXTENSIONS, SOURCE_EMPTY_WARNING, SOURCE_CONFLICT_WARNING, OUTPUT_CONFLICT_WARNING
+
+logger = logging.getLogger("Edifice")
+logger.setLevel(logging.INFO)
+
 
 @ed.component
 def OnboardingWidget(self, source:str, output:str):
@@ -113,21 +121,56 @@ def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, righ
 
 @ed.component
 def ButtonWidget(self, label:str, buttonLabel:str):
-    source_folder, _source_folder_setter = ed.use_context("source_folder_context_key", str)
-    output_folder, _output_folder_setter = ed.use_context("output_folder_context_key", str)
+    source_folder, source_folder_setter = ed.use_context("source_folder_context_key", str)
+    output_folder, output_folder_setter = ed.use_context("output_folder_context_key", str)
+    warning, warning_setter = ed.use_state("")
+
+
+    def checkWarning():
+        if buttonLabel.casefold().startswith("source"):
+            if warning == SOURCE_CONFLICT_WARNING and source_folder != "" and source_folder != output_folder:
+                logger.info("checkWarning(): clearing source folder warning")
+                warning_setter("")
+        else:
+            if warning == OUTPUT_CONFLICT_WARNING and output_folder != "" and output_folder != source_folder:
+                logger.info("checkWarning(): clearing output folder warning")
+                warning_setter("")
+
+    ed.use_effect(checkWarning, [source_folder, output_folder])
 
     def select_folder(event):
-        
         if buttonLabel.casefold().startswith("source"):
             folder_path = QFileDialog.getExistingDirectory(None, "Select Source Folder")
             if folder_path:
-                _source_folder_setter(folder_path)
+                has_images = any(glob.glob(os.path.join(folder_path, ext)) for ext in IMAGE_EXTENSIONS)
+                if not has_images:
+                    logger.info("select_folder(): setting empty source folder warning")
+                    warning_setter(SOURCE_EMPTY_WARNING)
+                    source_folder_setter("")
+                    return
+                if folder_path == output_folder:
+                    logger.info("select_folder(): setting source folder = output folder")
+                    warning_setter(SOURCE_CONFLICT_WARNING)
+                    source_folder_setter("")
+                    return
+                warning_setter("")
+                source_folder_setter(folder_path)
         elif buttonLabel.casefold().startswith("output"):
             folder_path = QFileDialog.getExistingDirectory(None, "Select Output Folder")
             if folder_path:
-                _output_folder_setter(folder_path)
+                if folder_path == source_folder:
+                    logger.info("select_folder(): setting output folder = source folder")
+                    warning_setter(OUTPUT_CONFLICT_WARNING)
+                    output_folder_setter("")
+                    return
+                warning_setter("")
+                output_folder_setter(folder_path)
 
     with ed.HBoxView(style={"padding": 10}):
         ed.Button(buttonLabel, on_click=select_folder)
-        ed.Label(source_folder if buttonLabel.casefold().startswith("source") 
-                 else output_folder if buttonLabel.casefold().startswith("output") else "")
+        if warning:
+            ed.Label(warning, style={"color": "red"})
+        else:
+            ed.Label(source_folder if buttonLabel.casefold().startswith("source")
+                     else output_folder if buttonLabel.casefold().startswith("output") else "")
+        
