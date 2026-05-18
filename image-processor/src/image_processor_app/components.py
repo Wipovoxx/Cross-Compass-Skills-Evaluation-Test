@@ -4,7 +4,25 @@ from PIL import Image, ImageFile
 from PySide6.QtGui import QImage, QIntValidator
 from PySide6.QtCore import Qt
 
-
+@ed.component
+def OnboardingWidget(self, source:str, output:str):
+    with ed.VBoxView(style={"align": "center", "padding": 80}):
+                    ed.Label("Welcome to Image Processor",
+                             style={"font-size": "28px", "font-weight": "bold", "margin-bottom": "10px"})
+                    ed.Label("Apply HSV and blur/sharpen effects to a batch of images.",
+                             style={"font-size": "14px", "margin-bottom": "40px"})
+                    ed.Label("Get started:",
+                             style={"font-size": "16px", "font-weight": "bold", "margin-bottom": "15px"})
+                    src_check = "✓" if source != "" else "1."
+                    out_check = "✓" if output != "" else "2."
+                    ed.Label(f"  {src_check}  Select a Source Folder containing your images",
+                             style={"font-size": "14px", "margin-bottom": "8px"})
+                    ed.Label(f"  {out_check}  Select an Output Folder for the processed images",
+                             style={"font-size": "14px", "margin-bottom": "8px"})
+                    ed.Label("  3.  Use Prev/Next to browse, then adjust the effect sliders",
+                             style={"font-size": "14px", "margin-bottom": "8px", "color": "#888"})
+                    ed.Label("  4.  Click Apply to process all images in the source folder",
+                             style={"font-size": "14px", "color": "#888"})
 
 
 @ed.component
@@ -23,16 +41,21 @@ def ImageComponent(self, label:str):
 
 @ed.component
 def EditorWidget(self):
+
+    reset_counter, reset_counter_setter = ed.use_state(0)
+
     with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "padding" : "5px" ,"border-radius": "50px", "max-width": "800px"}):
         ed.Label("Image Effects", style={"font-weight": "bold", "margin-left": "20px", "margin-top": "5px"})
-        SliderWidget(left_label="Hue", initial_value=0, min=0, max=360)
-        SliderWidget(left_label="Saturation",initial_value=100, min=0, max=200)
-        SliderWidget(left_label="Value", initial_value=100, min=0, max=200)
-        SliderWidget(left_label="Sharpness", initial_value=100, min=0, max=200, right_label="Blur")
+        SliderWidget(left_label="Hue", initial_value=0, min=0, max=360, reset=reset_counter)
+        SliderWidget(left_label="Saturation",initial_value=100, min=0, max=200, reset=reset_counter)
+        SliderWidget(left_label="Value", initial_value=100, min=0, max=200, reset=reset_counter)
+        SliderWidget(left_label="Sharpness", initial_value=100, min=0, max=200, right_label="Blur", reset=reset_counter)
+        with ed.HBoxView(style={"align": "left", "padding-top": "5px", "padding-bottom": "10px", "padding-left": "20px", "padding-right": "20px"}):
+            ed.Button("Reset", on_click=lambda _: reset_counter_setter(lambda c: c + 1))
         
 
 @ed.component
-def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, right_label:str = ""):
+def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, right_label:str = "", reset:int = 0):
 
     text_input_style = {"width": "50px","margin-left": "40px", "margin-right": "10px"}
     text_input_right_label_style = { "width": "50px", "margin-right": "10px"}
@@ -52,6 +75,12 @@ def SliderWidget(self, left_label:str, initial_value:int, min:int, max:int, righ
         ti.underlying.setValidator(QIntValidator(min, max, ti.underlying))
 
     ed.use_effect(setup_validator, (min, max))
+
+    def resetSlider():
+        if reset > 0:
+            set_value(initial_value)
+
+    ed.use_effect(resetSlider, reset)
 
     def on_TextInput_change(text):
         if text == "":

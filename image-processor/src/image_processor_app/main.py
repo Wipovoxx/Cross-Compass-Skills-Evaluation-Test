@@ -291,22 +291,37 @@ def Main(self):
 
     with ed.Window(title="Image Processor", _size_open='Maximized'):
         with ed.VBoxView(style={"align": "top"}):
-            with ed.HBoxView(style={"padding": 10}):
+
+            with ed.HBoxView(style={"padding": 5, "align": "center"}):
                 com.ButtonWidget(label=source_folder, buttonLabel="Source Folder")
                 com.ButtonWidget(label=output_folder, buttonLabel="Output Folder")
-            with ed.HBoxView(style={"padding": 10}):
-                if source_folder != "" and output_folder != "":
-                    with ed.VBoxView(style={"align": "top"}):
-                        com.ImageComponent(label="Original Image")
-                        with ed.HBoxView(style={"align": "center"}):
-                            ed.Button("Previous",on_click=lambda _: selectImage(-1))
-                            ed.Button("Next", on_click= lambda _: selectImage(1))
+            if source_folder == "" or output_folder == "":
+                com.OnboardingWidget(source=source_folder,output= output_folder)
+            
+            with ed.HBoxView(style={"padding": 10, "align": "center"}):
+                if source_folder != "" and output_folder != "" and image_names:
+                    com.ImageComponent(label="Original Image")
                     com.ImageComponent(label="Preview Image")
-            with ed.HBoxView(style={"align": "center"}):
+                        
+            with ed.HBoxView(style={"align": "center", "padding": 5}):
+                if source_folder != "" and output_folder != "" and image_names:
+                    current_idx = (image_names.index(selected_image_name) + 1) if selected_image_name in image_names else 0
+                    ed.Button("◀  Previous Image", on_click=lambda _: selectImage(-1),
+                              style={"margin-right": "20px", "padding": "6px 14px"})
+                    ed.Label(f"Image {current_idx} of {len(image_names)}",
+                             style={"min-width": "120px", "font-weight": "bold"})
+                    ed.Button("Next Image  ▶", on_click=lambda _: selectImage(1),
+                              style={"margin-left": "20px", "padding": "6px 14px"})                 
+            
+            with ed.HBoxView(style={"align": "center", "padding": 10}):
                 if source_folder != "" and output_folder != "":
-                    ed.Button("Apply", on_click= lambda _: on_start_click(), 
-                              style={"margin-left": "100px", "margin-right": "200px","height":"80px", "width":"80px"})
                     com.EditorWidget()
+                    ed.Button("Apply", on_click= lambda _: on_start_click(), 
+                              style={"height": "60px", "width": "180px", "font-weight": "bold",
+                                     "background-color": "#4a90e2", "color": "white",
+                                     "margin-left": "30px", "border-radius": "8px",
+                                     "font-size": "15px"})
+                    
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 if showProgressBar:
                     ed.ProgressBar(
