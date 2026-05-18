@@ -59,8 +59,16 @@ def subProcess( msg_queue: Queue[WorkItem],
     logger.info(f"Process: {multiprocessing.current_process().pid} is processing: {len(images)} images")
     for image in images:
         try:
+            image_name = os.path.basename(image)
+            stem, extension = os.path.splitext(image_name)
+            image_name = stem + "_edited" + extension
             result = editImage(image, hue, saturation, value, sharpness)
-            output_path = os.path.join(output_folder, os.path.basename(image))
+            output_path = os.path.join(output_folder, image_name)
+            n = 1
+            while os.path.exists(output_path):
+                output_path = os.path.join(output_folder, f"{stem}_edited{n}{extension}")
+                n += 1
+            
             result.save(output_path)
             callback(1)
         except Exception as e:
