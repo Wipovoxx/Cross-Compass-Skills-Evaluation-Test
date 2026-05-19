@@ -89,7 +89,7 @@ def ImageComponent(self, label:str):
     displayMode, displayMode_setter = ed.use_context("displayMode_context_key", DisplayMode)
 
     both_style = {"min-width": "500px", "max-width": "500px", "min-height": "400px", "max-height": "400px"}
-    large_style = {"min-width": "780px", "max-width": "780px", "min-height": "560px", "max-height": "560px"}
+    large_style = {"min-width": "702px", "max-width": "702px", "min-height": "504px", "max-height": "504px"}
 
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
