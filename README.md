@@ -1,5 +1,7 @@
 # Cross Compass Skills Evaluation Test
 
+[![Showcase Video](https://img.youtube.com/vi/oZHp8O95wok/0.jpg)](https://youtu.be/oZHp8O95wok)
+
 A desktop GUI for batch image processing. Apply HSV adjustments and blur/sharpen effects to an entire folder of images, with a live side-by-side preview and a parallelized save pipeline that keeps the UI responsive on large batches.
 
 Built with:
