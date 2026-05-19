@@ -8,9 +8,8 @@ from PySide6.QtCore import Qt
 import logging
 from .constants import (
     IMAGE_EXTENSIONS, 
-    SOURCE_EMPTY_WARNING, 
-    IMAGE_EXTENSIONS,
-    DEFAUT_HUE, 
+    SOURCE_EMPTY_WARNING,
+    DEFAULT_HUE, 
     DEFAULT_SATURATION, 
     DEFAULT_SHARPNESS, 
     DEFAULT_VALUE,
@@ -107,7 +106,7 @@ def EditorWidget(self):
 
     with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "padding" : "5px" ,"border-radius": "50px", "max-width": "800px"}):
         ed.Label("Image Effects", style={"font-weight": "bold", "margin-left": "20px", "margin-top": "5px"})
-        SliderWidget(left_label="Hue", initial_value=DEFAUT_HUE, min=0, max=360, reset=reset_counter)
+        SliderWidget(left_label="Hue", initial_value=DEFAULT_HUE, min=0, max=360, reset=reset_counter)
         SliderWidget(left_label="Saturation",initial_value=DEFAULT_SATURATION, min=0, max=200, reset=reset_counter)
         SliderWidget(left_label="Value", initial_value=DEFAULT_VALUE, min=0, max=200, reset=reset_counter)
         SliderWidget(left_label="Sharpness", initial_value=DEFAULT_SHARPNESS, min=0, max=200, right_label="Blur", reset=reset_counter)

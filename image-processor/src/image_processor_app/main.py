@@ -11,7 +11,7 @@ import edifice as ed
 from . import components as com
 from .constants import (
     IMAGE_EXTENSIONS,
-    DEFAUT_HUE, 
+    DEFAULT_HUE, 
     DEFAULT_SATURATION, 
     DEFAULT_SHARPNESS, 
     DEFAULT_VALUE,
@@ -132,7 +132,7 @@ def Main(self):
     source_folder, _source_folder_setter = ed.provide_context("source_folder_context_key", "")
     output_folder, _output_folder_setter = ed.provide_context("output_folder_context_key", "")
 
-    current_hue, current_hue_setter = ed.provide_context("hue_context_key", DEFAUT_HUE)
+    current_hue, current_hue_setter = ed.provide_context("hue_context_key", DEFAULT_HUE)
     current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", DEFAULT_SATURATION)
     current_value, current_value_setter = ed.provide_context("value_context_key", DEFAULT_VALUE)
     current_sharpness, current_sharpness_setter = ed.provide_context("sharpness_context_key", DEFAULT_SHARPNESS)
@@ -141,8 +141,11 @@ def Main(self):
     preview_image, preview_image_setter = ed.provide_context("preview_image_context_key", QImage())
     image_names, image_names_setter = ed.use_state([])
     firstImage = 0
+
     progressBarValue, progressBarValue_setter = ed.use_state(0)
     progressBarFactor, progressBarFactor_setter = ed.use_state(1)
+    progressBarLabel, progressBarLabel_setter = ed.use_state("")
+
     displayMode, displayMode_setter = ed.provide_context("displayMode_context_key", DisplayMode.BOTH)
     start, start_setter = ed.use_state(False)
     execute, execute_setter = ed.use_state(False)
@@ -153,7 +156,7 @@ def Main(self):
 
         aux_image_names = []
         progressBarValue_setter(0)
-        
+        progressBarLabel_setter("Image Loading in progress...")
         if source_folder is not None and os.path.isdir(source_folder):
             showProgressBar_setter(True)
             image_count = sum(len(glob.glob(os.path.join(source_folder, ext))) for ext in IMAGE_EXTENSIONS)
@@ -217,6 +220,7 @@ def Main(self):
     def on_start_click():
         progressBarValue_setter(0)
         start_setter(not start)
+        progressBarLabel_setter("Image Processing in progress...")
         if not execute:
             execute_setter(not execute)
 
@@ -263,7 +267,7 @@ def Main(self):
             )
             
             logger.info("runSubprocess(): All workers finished.")
-            logger.info(f"runSubprocess(): processed: {len(image_names)} images")
+            logger.info(f"runSubprocess(): Processed {len(image_names)} images")
             showProgressBar_setter(False)
             execute_setter(not execute)
         
@@ -310,13 +314,15 @@ def Main(self):
                     
             with ed.HBoxView(style={"align": "center", "padding": 50}):
                 if showProgressBar:
-                    ed.ProgressBar(
-                        value=int(math.ceil((progressBarValue/progressBarFactor) *100)),
-                        min_value=0,
-                        max_value=100,
-                        format="",
-                        style={"width": "600%"}
-                    )
+                    with ed.VBoxView(style={"align": "center"}):
+                        ed.Label(progressBarLabel, style={"align": "center"})
+                        ed.ProgressBar(
+                            value=int(math.ceil((progressBarValue/progressBarFactor) *100)),
+                            min_value=0,
+                            max_value=100,
+                            format="",
+                            style={"width": "600%"}
+                        )
 
    
 

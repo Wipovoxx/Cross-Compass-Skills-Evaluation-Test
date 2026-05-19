@@ -11,17 +11,20 @@ extraPaths = ["src"]
 [project]
 name = "image-processor"
 version = "0.1.0"
-description = "Add your description here"
+description = "A desktop GUI for batch image processing with HSV adjustments and sharpness/blur effects"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "opencv-python>=4.13.0.92",
+    "numpy>=2.0.0",
     "pillow>=12.2.0",
     "pyedifice>=5.0.0",
     "pyside6-essentials>=6.11.0",
+]
+
+[dependency-groups]
+dev = [
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
-    "watchdog>=6.0.0",
 ]
 
 [project.scripts]
