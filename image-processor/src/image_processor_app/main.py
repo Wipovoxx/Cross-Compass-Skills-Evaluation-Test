@@ -122,15 +122,13 @@ def editImage(image: str, hue: int, saturation: int, value: int, sharpness: int)
 def Main(self):
     source_folder, _source_folder_setter = ed.provide_context("source_folder_context_key", "")
     output_folder, _output_folder_setter = ed.provide_context("output_folder_context_key", "")
-    reload_preview, reload_preview_setter = ed.use_state(False)
 
     current_hue, current_hue_setter = ed.provide_context("hue_context_key", 0)
     current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", 100)
     current_value, current_value_setter = ed.provide_context("value_context_key", 100)
     current_sharpness, current_sharpness_setter = ed.provide_context("sharpness_context_key", 0)
 
-    selected_image_name, selected_image_setter = ed.provide_context("selected_image_context_key", "")
-    selected_preview_name, selected_preview_name_setter = ed.use_state("")
+    selected_image_name, selected_image_name_setter = ed.provide_context("selected_image_context_key", "")
     preview_image, preview_image_setter = ed.provide_context("preview_image_context_key", QImage())
     image_names, image_names_setter = ed.use_state([])
     firstImage = 0
@@ -159,31 +157,14 @@ def Main(self):
             
             image_names_setter(aux_image_names)
             logger.info(f"{len(aux_image_names)} images loaded.")
-            selected_image_setter(aux_image_names[firstImage])
-            reload_preview_setter(not reload_preview)
+            selected_image_name_setter(aux_image_names[firstImage])
             showProgressBar_setter(False)
         else:
             logger.warning("loadImages(): Source folder is not set or does not exist.")
 
     ed.use_async(loadImages, source_folder)
 
-    async def loadPreviewImage():
-        
-        if source_folder == "" or not os.path.isdir(source_folder):
-            logger.warning("loadPreviewImage(): Source folder is not set or does not exist.")
-            return
-
-        if output_folder == "" or not os.path.isdir(output_folder):
-            logger.warning("loadPreviewImage(): Output folder is not set or does not exist.")
-            return
-        
-        updatePreviewImage(firstImage)
-        
-    
-
-    ed.use_async(loadPreviewImage,[source_folder, output_folder, reload_preview])
-
-    
+       
     def selectImage(direction):
     
         currentImageIndex = image_names.index(selected_image_name) if selected_image_name in image_names else -1
@@ -195,52 +176,34 @@ def Main(self):
             return
 
         if 0 <= currentImageIndex < len(image_names):           
-            selected_image_setter(image_names[currentImageIndex])
-            updatePreviewImage(currentImageIndex)
+            selected_image_name_setter(image_names[currentImageIndex])
+            
         elif image_names.index(selected_image_name) == 0 and direction == -1:
-            selected_image_setter(image_names[len(image_names)-1]) #if we are at the first image and click previous, we select the last image
-            updatePreviewImage(len(image_names)-1)
+            selected_image_name_setter(image_names[len(image_names)-1]) #if we are at the first image and click previous, we select the last image
+            
         elif image_names.index(selected_image_name) == len(image_names)-1 and direction == 1:
-            selected_image_setter(image_names[0]) #if we are at the last image and click next, we select the first image
-            updatePreviewImage(0)
+            selected_image_name_setter(image_names[0]) #if we are at the last image and click next, we select the first image
+            
 
         logger.info(f"selectImage(): Selected image: {selected_image_name}")
         
-    def updatePreviewImage(index):
-
-        if output_folder == "":
-            logger.warning("updatePreviewImage(): Output folder is not set or does not exist.")
-            return
-
-        try:
-            preview_img = Image.open(image_names[index])
-            if preview_img is not None:
-                img_path = os.path.join(output_folder, "preview.png")
-                preview_img.save(img_path)
-                selected_preview_name_setter(img_path)
-                preview_image_setter(QImage(img_path))
-                logger.info(f"updatePreviewImage(): Preview image updated: {img_path}")
-        except Exception as e:
-            logger.error(f"updatePreviewImage: Error loading preview image: {e}", exc_info=True)
-
 
     async def editPreview():
-        if selected_preview_name == "":
-            logger.warning("editPreview(): No preview image selected.")
+        if selected_image_name == "":
+            logger.warning("editPreview(): No image selected.")
             return
         await asyncio.sleep(0.1)
         try:
-            edittedPreview = editImage(selected_preview_name, current_hue, current_saturation, current_value, current_sharpness)
+            edittedPreview = editImage(selected_image_name, current_hue, current_saturation, current_value, current_sharpness)
         except Exception as e:
             logger.error(f"Error editing preview image: {e}", exc_info=True)
             return
+        edittedPreview = edittedPreview.convert("RGBA")
+        editedPreview_data = edittedPreview.tobytes('raw', 'RGBA')
+        preview_image_setter(QImage(editedPreview_data, edittedPreview.width, edittedPreview.height, QImage.Format.Format_RGBA8888).copy())
+        logger.info(f"editPreview(): Preview image edited: {selected_image_name}")
 
-        result_path = os.path.join(output_folder, "edited_preview.png")
-        edittedPreview.save(result_path)
-        preview_image_setter(QImage(result_path))
-        logger.info(f"editPreview(): Preview image edited and saved: {result_path}")
-
-    ed.use_async(editPreview, [selected_preview_name, current_hue, current_saturation, current_value, current_sharpness])
+    ed.use_async(editPreview, [selected_image_name, current_hue, current_saturation, current_value, current_sharpness])
 
     def on_start_click():
         progressBarValue_setter(0)
