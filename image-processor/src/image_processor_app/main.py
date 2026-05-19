@@ -9,7 +9,13 @@ from PIL import ImageFilter
 import numpy as np
 import edifice as ed
 from . import components as com
-from .constants import IMAGE_EXTENSIONS
+from .constants import (
+    IMAGE_EXTENSIONS,
+    DEFAUT_HUE, 
+    DEFAULT_SATURATION, 
+    DEFAULT_SHARPNESS, 
+    DEFAULT_VALUE,
+    DisplayMode)
 import logging
 from PySide6.QtGui import QImage
 from dataclasses import dataclass
@@ -17,6 +23,7 @@ import multiprocessing
 from multiprocessing import Queue
 import functools
 import math
+from enum import Enum
 
 
 logger = logging.getLogger("Edifice")
@@ -31,6 +38,8 @@ class WorkItem:
     saturation: int
     value: int
     sharpness: int
+
+
 
 
 
@@ -123,10 +132,10 @@ def Main(self):
     source_folder, _source_folder_setter = ed.provide_context("source_folder_context_key", "")
     output_folder, _output_folder_setter = ed.provide_context("output_folder_context_key", "")
 
-    current_hue, current_hue_setter = ed.provide_context("hue_context_key", 0)
-    current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", 100)
-    current_value, current_value_setter = ed.provide_context("value_context_key", 100)
-    current_sharpness, current_sharpness_setter = ed.provide_context("sharpness_context_key", 0)
+    current_hue, current_hue_setter = ed.provide_context("hue_context_key", DEFAUT_HUE)
+    current_saturation, current_saturation_setter = ed.provide_context("saturation_context_key", DEFAULT_SATURATION)
+    current_value, current_value_setter = ed.provide_context("value_context_key", DEFAULT_VALUE)
+    current_sharpness, current_sharpness_setter = ed.provide_context("sharpness_context_key", DEFAULT_SHARPNESS)
 
     selected_image_name, selected_image_name_setter = ed.provide_context("selected_image_context_key", "")
     preview_image, preview_image_setter = ed.provide_context("preview_image_context_key", QImage())
@@ -134,7 +143,7 @@ def Main(self):
     firstImage = 0
     progressBarValue, progressBarValue_setter = ed.use_state(0)
     progressBarFactor, progressBarFactor_setter = ed.use_state(1)
-
+    displayMode, displayMode_setter = ed.provide_context("displayMode_context_key", DisplayMode.BOTH)
     start, start_setter = ed.use_state(False)
     execute, execute_setter = ed.use_state(False)
     showProgressBar, showProgressBar_setter= ed.use_state(False)
@@ -271,11 +280,14 @@ def Main(self):
                 com.ButtonWidget(label=output_folder, buttonLabel="Output Folder")
             if source_folder == "" or output_folder == "":
                 com.OnboardingWidget(source=source_folder,output= output_folder)
-            
+            if source_folder != "" and output_folder != "" and image_names:
+                    com.DisplayModeWidget()
             with ed.HBoxView(style={"padding": 10, "align": "center"}):
                 if source_folder != "" and output_folder != "" and image_names:
-                    com.ImageComponent(label="Original Image")
-                    com.ImageComponent(label="Preview Image")
+                    if displayMode == DisplayMode.BOTH or displayMode == DisplayMode.ORIGINAL:   
+                        com.ImageComponent(label="Original Image")
+                    if displayMode == DisplayMode.BOTH or displayMode == DisplayMode.PREVIEW:
+                        com.ImageComponent(label="Preview Image")
                         
             with ed.HBoxView(style={"align": "center", "padding": 5}):
                 if source_folder != "" and output_folder != "" and image_names:

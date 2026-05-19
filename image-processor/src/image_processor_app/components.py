@@ -6,14 +6,63 @@ from PIL import Image, ImageFile
 from PySide6.QtGui import QImage, QIntValidator
 from PySide6.QtCore import Qt
 import logging
-from .constants import IMAGE_EXTENSIONS, SOURCE_EMPTY_WARNING
+from .constants import (
+    IMAGE_EXTENSIONS, 
+    SOURCE_EMPTY_WARNING, 
+    IMAGE_EXTENSIONS,
+    DEFAUT_HUE, 
+    DEFAULT_SATURATION, 
+    DEFAULT_SHARPNESS, 
+    DEFAULT_VALUE,
+    DisplayMode)
 
 logger = logging.getLogger("Edifice")
 logger.setLevel(logging.INFO)
 
 
+
+@ed.component
+def DisplayModeWidget(self):
+
+    displayMode, displayMode_setter = ed.use_context("displayMode_context_key", DisplayMode)
+
+    button_style = {
+                      "padding": "6px 16px",
+                      "margin": "0 4px",
+                      "min-width": "130px",
+                      "background-color": "#ffffff",
+                      "color": "#333",
+                      "border": "1px solid #4a90e2",
+                      "border-radius": "6px",
+                      "font-weight": "normal",
+                  }
+    selected_button_style = {
+                      "padding": "6px 16px",
+                      "margin": "0 4px",
+                      "min-width": "130px",
+                      "background-color": "#4a90e2",
+                      "color": "white",
+                      "border": "1px solid #4a90e2",
+                      "border-radius": "6px",
+                      "font-weight": "bold",
+                  }
+
+
+    def setDisplayMode(mode:DisplayMode) :
+        displayMode_setter(mode)
+
+    with ed.HBoxView(style={"align": "center", "padding": 5}):
+        ed.Label("Display mode:", style={"font-weight": "bold", "margin-right:" : "5px"})
+        ed.Button("Side by side", on_click= lambda _: setDisplayMode(DisplayMode.BOTH), style= selected_button_style if displayMode == DisplayMode.BOTH else button_style)
+        ed.Button("Original Only", on_click= lambda _: setDisplayMode(DisplayMode.ORIGINAL), style= selected_button_style if displayMode == DisplayMode.ORIGINAL else button_style)
+        ed.Button("Preview Only", on_click= lambda _: setDisplayMode(DisplayMode.PREVIEW), style= selected_button_style if displayMode == DisplayMode.PREVIEW else button_style)
+
 @ed.component
 def OnboardingWidget(self, source:str, output:str):
+
+    src_check = "✓" if source != "" else "1."
+    out_check = "✓" if output != "" else "2."
+
     with ed.VBoxView(style={"align": "center", "padding": 80}):
                     ed.Label("Welcome to Image Processor",
                              style={"font-size": "28px", "font-weight": "bold", "margin-bottom": "10px"})
@@ -21,15 +70,14 @@ def OnboardingWidget(self, source:str, output:str):
                              style={"font-size": "14px", "margin-bottom": "40px"})
                     ed.Label("Get started:",
                              style={"font-size": "16px", "font-weight": "bold", "margin-bottom": "15px"})
-                    src_check = "✓" if source != "" else "1."
-                    out_check = "✓" if output != "" else "2."
-                    ed.Label(f"  {src_check}  Select a Source Folder containing your images",
+                    
+                    ed.Label(f"{src_check} Select a Source Folder containing your images",
                              style={"font-size": "14px", "margin-bottom": "8px"})
-                    ed.Label(f"  {out_check}  Select an Output Folder for the processed images",
+                    ed.Label(f"{out_check} Select an Output Folder for the processed images",
                              style={"font-size": "14px", "margin-bottom": "8px"})
-                    ed.Label("  3.  Use Prev/Next to browse, then adjust the effect sliders",
+                    ed.Label("3. Use Previous/Next Image to browse, then adjust the effect sliders",
                              style={"font-size": "14px", "margin-bottom": "8px", "color": "#888"})
-                    ed.Label("  4.  Click Apply to process all images in the source folder",
+                    ed.Label("4. Click Apply to process all images in the source folder",
                              style={"font-size": "14px", "color": "#888"})
 
 
@@ -38,14 +86,19 @@ def ImageComponent(self, label:str):
 
     selected_image_name, _selected_image_setter = ed.use_context("selected_image_context_key", str)
     preview_image, preview_image_setter = ed.use_context("preview_image_context_key", QImage)
-    image_style = {"min-width": "500px", "max-width": "500px", "min-height": "400px", "max-height": "400px"}
+    displayMode, displayMode_setter = ed.use_context("displayMode_context_key", DisplayMode)
+
+    both_style = {"min-width": "500px", "max-width": "500px", "min-height": "400px", "max-height": "400px"}
+    large_style = {"min-width": "780px", "max-width": "780px", "min-height": "560px", "max-height": "560px"}
 
     with ed.VBoxView(style={"align": "top", "padding": 10}):
         ed.Label(label)
         if label.casefold().startswith("original"):
-            ed.Image(src=selected_image_name,aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatio  ,style=image_style)
+            ed.Image(src=selected_image_name,aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatio,
+                     style=large_style if displayMode == DisplayMode.ORIGINAL else both_style  )
         elif label.casefold().startswith("preview"):
-            ed.Image(src=preview_image, aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatio , style=image_style)
+            ed.Image(src=preview_image, aspect_ratio_mode=Qt.AspectRatioMode.KeepAspectRatio,
+                      style=large_style if displayMode == DisplayMode.PREVIEW else both_style)
 
 @ed.component
 def EditorWidget(self):
@@ -54,10 +107,10 @@ def EditorWidget(self):
 
     with ed.VBoxView(style={"align": "top", "border": "1px solid #ccc", "padding" : "5px" ,"border-radius": "50px", "max-width": "800px"}):
         ed.Label("Image Effects", style={"font-weight": "bold", "margin-left": "20px", "margin-top": "5px"})
-        SliderWidget(left_label="Hue", initial_value=0, min=0, max=360, reset=reset_counter)
-        SliderWidget(left_label="Saturation",initial_value=100, min=0, max=200, reset=reset_counter)
-        SliderWidget(left_label="Value", initial_value=100, min=0, max=200, reset=reset_counter)
-        SliderWidget(left_label="Sharpness", initial_value=100, min=0, max=200, right_label="Blur", reset=reset_counter)
+        SliderWidget(left_label="Hue", initial_value=DEFAUT_HUE, min=0, max=360, reset=reset_counter)
+        SliderWidget(left_label="Saturation",initial_value=DEFAULT_SATURATION, min=0, max=200, reset=reset_counter)
+        SliderWidget(left_label="Value", initial_value=DEFAULT_VALUE, min=0, max=200, reset=reset_counter)
+        SliderWidget(left_label="Sharpness", initial_value=DEFAULT_SHARPNESS, min=0, max=200, right_label="Blur", reset=reset_counter)
         with ed.HBoxView(style={"align": "left", "padding-top": "5px", "padding-bottom": "10px", "padding-left": "20px", "padding-right": "20px"}):
             ed.Button("Reset", on_click=lambda _: reset_counter_setter(lambda c: c + 1))
         
